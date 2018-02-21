@@ -11,7 +11,6 @@ from folder_defs import get_logdir
 
 # Save Model, Weights, and Config Options
 def save_model(config, model):
-    print('Saving Model, Weights, and Config Options')
 
     logdir = get_logdir()
     config.save_config(config, logdir)

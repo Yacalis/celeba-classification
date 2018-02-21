@@ -33,7 +33,6 @@ log_dir = get_logdir(config)
 callbacks = Callbacks(config, log_dir).callbacks
 
 # load data
-file = ''
 dataloader = DataLoader()
 x_data, y_data = dataloader.retrieve_data()
 
@@ -44,12 +43,18 @@ input_dim = x_data.shape[1]
 x_train, x_test, y_train, y_test = train_test_split(
     x_data, y_data, test_size=0.2)
 
-# build model
+# build and train model
 model = build_model(input_dim, config)
 model, epoch_iter = train_model(model, x_train, y_train, model_iter, batch_size,
                                 config, callbacks, epoch_iter, max_epochs)
+
+# evaluate and save model
 score = model.evaluate(x_test, y_test, batch_size=batch_size)
+print('Final score:', score)
+print('Saving model...')
 save_model(config, model)
+print('Completed program')
+
 
 #x = x_train
 #y = y_train
@@ -67,4 +72,4 @@ save_model(config, model)
 #    batch_size *= batch_size_increase_multiplier
 #
 #
-print('Completed program')
+

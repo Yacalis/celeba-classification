@@ -19,7 +19,7 @@ def build_model(input_dim, config):
     # ==========================================================================
     # Build Model
     # ==========================================================================
-    print('Building Model')
+    print('Building model...')
 
     # create layer arrangement
     model = Sequential()
@@ -52,7 +52,7 @@ def build_model(input_dim, config):
     # ==========================================================================
     # Compile Model
     # ==========================================================================
-    print('Compiling Model')
+    print('Compiling model...')
 
     # set up metrics and optimizer
     metrics = []
@@ -63,7 +63,6 @@ def build_model(input_dim, config):
                   optimizer=optimizer,
                   metrics=metrics)
 
-    # save model
-    save_model(model, config)
+    print('Finished compiling, model summary:', model.summary())
 
     return model
