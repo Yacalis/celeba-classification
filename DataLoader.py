@@ -11,6 +11,8 @@ import numpy as np
 
 class DataLoader:
     
+    # a = DataLoader(image_directory, .mat_file_directory)
+    
     def __init__(self,dataDirectory,infoDirectory) -> None:
         self._dataDir = dataDirectory
         self._infoDir = infoDirectory
