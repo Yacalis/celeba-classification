@@ -11,8 +11,6 @@ import numpy as np
 
 class DataLoader:
     
-    # a = DataLoader(image_directory, .mat_file_directory)
-    
     def __init__(self,dataDirectory,infoDirectory) -> None:
         self._dataDir = dataDirectory
         self._infoDir = infoDirectory
@@ -20,6 +18,7 @@ class DataLoader:
     def retrieve_data(self) -> ():
         infoDict = self.get_data_info()
         image_matrix = self.get_image_matrix(infoDict)
+        print(image_matrix)
         x_data = image_matrix[0]
         y_data = image_matrix[1]
         return x_data, y_data
@@ -42,17 +41,16 @@ class DataLoader:
         try:
             origin_dir = os.listdir(self._dataDir)
             for sub_dir in origin_dir:
-                count = 0
                 newSubDir = os.path.join(self._dataDir,sub_dir)
                 if os.path.isdir(newSubDir):
                     newDirectory = os.listdir(newSubDir)
                     for item in newDirectory:
-                        if item in lst.keys():
+                        if item in infoDict.keys():
                             imaName.append(item)
                             newPath = os.path.join(newSubDir,item)
                             im = Image.open(newPath)
-                            if lst[item] == 1 or lst[item] == 0:
-                                label = lst[item]
+                            if infoDict[item] == 1 or infoDict[item] == 0:
+                                label = infoDict[item]
                                 imageMatrix = np.array(im.resize((228,228)))
                                 listImageMatrix.append([imageMatrix,label])
                             im.close()
@@ -60,3 +58,4 @@ class DataLoader:
             return listImageMatrix
         except Exception as e:
                 print(str(e))
+    
