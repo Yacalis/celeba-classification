@@ -7,24 +7,23 @@ Created on Tue Feb 20 15:21:00 2018
 """
 
 import numpy as np
+import scipy.io as sio
+import os
+from PIL import Image
 
 
 class DataLoader:
     
-    def __init__(self,dataDirectory,infoDirectory) -> None:
+    def __init__(self, dataDirectory, infoDirectory) -> None:
         self._dataDir = dataDirectory
         self._infoDir = infoDirectory
         
     def retrieve_data(self) -> ():
         infoDict = self.get_data_info()
-        image_matrix = self.get_image_matrix(infoDict)
-        print(image_matrix)
-        x_data = image_matrix[0]
-        y_data = image_matrix[1]
-        return x_data, y_data
+        return self.get_image_matrix(infoDict)
     
     def get_data_info(self) -> dict:
-        mat = "imdb.mat"
+        mat = self._infoDir + "/imdb.mat"
         sio.whosmat(mat)
         f = sio.loadmat(mat)
         data = f['imdb'][0][0]
@@ -35,9 +34,10 @@ class DataLoader:
             name_gender_dictionary[tempList[0][3:]] = tempList[1]
         return name_gender_dictionary
     
-    def get_image_matrix(self,infoDict):
+    def get_image_matrix(self, infoDict):
         listImageMatrix = []
         imaName = []
+        label_matrix = []
         try:
             origin_dir = os.listdir(self._dataDir)
             for sub_dir in origin_dir:
@@ -51,11 +51,11 @@ class DataLoader:
                             im = Image.open(newPath)
                             if infoDict[item] == 1 or infoDict[item] == 0:
                                 label = infoDict[item]
-                                imageMatrix = np.array(im.resize((228,228)))
-                                listImageMatrix.append([imageMatrix,label])
+                                imageMatrix = np.array(im.resize((228,228, 3)))
+                                listImageMatrix.append(imageMatrix)
+                                label_matrix.append(label)
                             im.close()
                 print(sub_dir)
-            return listImageMatrix
+            return np.array(listImageMatrix), np.array(label_matrix)
         except Exception as e:
                 print(str(e))
-    

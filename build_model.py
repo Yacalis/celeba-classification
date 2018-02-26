@@ -8,11 +8,11 @@ Created on Tue Feb 20 15:14:00 2018
 
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers.convolutional import Conv2D, MaxPooling2D
-from LRN2D import LRN2D
+# from LRN2D import LRN2D
 from keras.layers.normalization import BatchNormalization
 from keras.models import Sequential
 from Optimizer import Optimizer
-from save_model import save_model
+# from save_model import save_model
 
 
 def build_model(input_dim, config):

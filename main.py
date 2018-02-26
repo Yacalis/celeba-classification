@@ -33,11 +33,12 @@ log_dir = get_logdir(config)
 callbacks = Callbacks(config, log_dir).callbacks
 
 # load data
-dataloader = DataLoader()
+dataloader = DataLoader('/Users/Yacalis/Projects/TensorFlow/cs274c-data/Pictures/test',
+                        '/Users/Yacalis/Projects/TensorFlow/cs274c-data')
 x_data, y_data = dataloader.retrieve_data()
 
 # get input/output data dims
-input_dim = x_data.shape[1]
+input_dim = x_data[0].shape
 
 # split data into training and test sets
 x_train, x_test, y_train, y_test = train_test_split(
