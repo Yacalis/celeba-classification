@@ -15,8 +15,9 @@ class Config:
     def __init__(self):
         self.config, unparsed = self.main()
         if unparsed:
-            raise Exception(f'[!] Something is wrong - there are unrecognized \
-                            parameters present: {unparsed}')
+            print(f'unparsed: {unparsed}')
+            # raise Exception(f'[!] Something is wrong - there are \
+            # unrecognized parameters present: {unparsed}')
         return
 
     @staticmethod
@@ -36,17 +37,9 @@ class Config:
         # Model Checkpoint
         cback_arg.add_argument('--period', type=int, default=10)
 
-        # Data
-        data_arg = parser.add_argument_group('Data')
-        data_arg.add_argument('--input_vars', type=str, default='')
-        data_arg.add_argument('--output_vars', type=str, default='')
-
-        # Misc
-        misc_arg = parser.add_argument_group('Misc')
-        misc_arg.add_argument('--random_seed', type=int, default=123)
-
         # Training and testing
         train_arg = parser.add_argument_group('Training')
+        train_arg.add_argument('--optimizer', type=str, default='adam')
         train_arg.add_argument('--batch_size', type=int, default=50)
         train_arg.add_argument('--epochs', type=int, default=200)
         train_arg.add_argument('--shuffle', type=bool, default=True)

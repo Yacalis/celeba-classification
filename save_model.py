@@ -12,7 +12,7 @@ from folder_defs import get_logdir
 # Save Model, Weights, and Config Options
 def save_model(config, model):
 
-    logdir = get_logdir()
+    logdir = get_logdir(config)
     config.save_config(config, logdir)
 
     model_fp = logdir + '/finished_model.hdf5'

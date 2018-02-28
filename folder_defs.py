@@ -7,6 +7,7 @@ Created on Tue Feb 20 16:23:00 2018
 """
 
 import time
+import os
 
 
 # =============================================================================
@@ -21,5 +22,5 @@ def get_logdir(config: object) -> str:
         logdir += '-batch_' + 'var'
     else:
         logdir += '-batch_' + str(config.batch_size)
-
-    return '../cs274c-data/logs/' + logdir
+    path = '/Users/Yacalis/Projects/TensorFlow/cs274c-data/'
+    return os.path.join(path, 'logs', logdir)

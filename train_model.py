@@ -24,9 +24,9 @@ def train_model(model, x_train, y_train, model_iter, batch_size, config,
               verbose=1,
               callbacks=callbacks)
 
-    epoch_iter = epoch_iter + model.epoch
+    #epoch_iter = epoch_iter + model.epoch
 
-    print(f'Ending training model {model_iter}, '
-          f'currently at epoch {epoch_iter}')
+    #print(f'Ending training model {model_iter}, '
+    #      f'currently at epoch {epoch_iter}')
 
     return model, epoch_iter

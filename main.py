@@ -48,6 +48,7 @@ x_train, x_test, y_train, y_test = train_test_split(
 model = build_model(input_dim, config)
 model, epoch_iter = train_model(model, x_train, y_train, model_iter, batch_size,
                                 config, callbacks, epoch_iter, max_epochs)
+print('Completed training')
 
 # evaluate and save model
 score = model.evaluate(x_test, y_test, batch_size=batch_size)
