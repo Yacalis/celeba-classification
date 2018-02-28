@@ -10,17 +10,22 @@ from folder_defs import get_logdir
 
 
 # Save Model, Weights, and Config Options
-def save_model(config, model):
+def save_model(logdir, configuration, model):
+    print('Saving model...')
 
-    logdir = get_logdir(config)
-    config.save_config(config, logdir)
+    # save config options as json
+    config = configuration.config
+    configuration.save_config(config, logdir)
 
+    # save complete model
     model_fp = logdir + '/finished_model.hdf5'
     model.save(model_fp)
 
+    # save just the model weights as its own file
     weights_fp = logdir + '/finished_weights.hdf5'
     model.save_weights(weights_fp)
 
+    # save the model weights as numpy arrays in a text file
     np_weights_fp = logdir + '/np_finished_weights.txt'
     weights = model.get_weights()
     with open(np_weights_fp, 'w+') as file:

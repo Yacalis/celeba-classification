@@ -15,7 +15,7 @@ class Config:
     def __init__(self):
         self.config, unparsed = self.main()
         if unparsed:
-            print(f'unparsed: {unparsed}')
+            print(f'unparsed config options: {unparsed}')
             # raise Exception(f'[!] Something is wrong - there are \
             # unrecognized parameters present: {unparsed}')
         return
@@ -40,9 +40,8 @@ class Config:
         # Training and testing
         train_arg = parser.add_argument_group('Training')
         train_arg.add_argument('--optimizer', type=str, default='adam')
-        train_arg.add_argument('--batch_size', type=int, default=50)
-        train_arg.add_argument('--epochs', type=int, default=200)
-        train_arg.add_argument('--shuffle', type=bool, default=True)
+        train_arg.add_argument('--batch_size', type=int, default=4)
+        train_arg.add_argument('--epochs', type=int, default=4)
         train_arg.add_argument('--change_lr', type=bool, default=True)
         train_arg.add_argument('--change_bs', type=bool, default=False)
 
@@ -51,5 +50,9 @@ class Config:
     @staticmethod
     def save_config(config: object, logdir: str) -> None:
         param_path = os.path.join(logdir, 'params.json')
+        try:
+            os.makedirs(logdir)
+        except:
+            pass
         with open(param_path, 'w') as f:
             json.dump(config.__dict__, f, indent=4, sort_keys=True)

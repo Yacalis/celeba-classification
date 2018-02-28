@@ -14,48 +14,69 @@ from PIL import Image
 
 class DataLoader:
     
-    def __init__(self, dataDirectory, infoDirectory) -> None:
-        self._dataDir = dataDirectory
-        self._infoDir = infoDirectory
+    def __init__(self, data_dir, image_dir) -> None:
+        self._data_dir = data_dir
+        self._image_dir = image_dir
         
     def retrieve_data(self) -> ():
-        infoDict = self.get_data_info()
-        return self.get_image_matrix(infoDict)
-    
-    def get_data_info(self) -> dict:
-        mat = self._infoDir + "/imdb.mat"
-        sio.whosmat(mat)
-        f = sio.loadmat(mat)
+        data_dict = self.__get_data_dict()
+
+        return self.__load_data(data_dict)
+
+    def __get_data_dict(self) -> dict:
+        imdb_mat = os.path.join(self._data_dir, "imdb.mat")
+        print('data file: ', imdb_mat)
+        # loading file into memory
+        sio.whosmat(imdb_mat)
+        f = sio.loadmat(imdb_mat)
+        # getting the important bit of the file
         data = f['imdb'][0][0]
-        d = {'filename': data[2][0], 'gender': data[3][0]}
-        name_gender_dictionary = {}
-        for i in range(len(data[2][0])):
-            tempList = (data[2][0][i][0],data[3][0][i])
-            name_gender_dictionary[tempList[0][3:]] = tempList[1]
-        return name_gender_dictionary
-    
-    def get_image_matrix(self, infoDict):
-        listImageMatrix = []
-        imaName = []
-        label_matrix = []
+        num_entries = len(data[2][0])
+        # turning the array into a dict of key:filename, value:gender
+        filename_gender_dict = {}
+        for i in range(num_entries):
+            key = str(data[2][0][i][0])
+            value = data[3][0][i]
+            filename_gender_dict[key] = value
+            num_records = len(filename_gender_dict.keys())
+        print('number of records from data file: ', num_records)
+        return filename_gender_dict
+
+    def __load_data(self, data_dict: dict):
+        # instantiate arrays
+        x_data = []
+        y_data = []
         try:
-            origin_dir = os.listdir(self._dataDir)
-            for sub_dir in origin_dir:
-                newSubDir = os.path.join(self._dataDir,sub_dir)
-                if os.path.isdir(newSubDir):
-                    newDirectory = os.listdir(newSubDir)
-                    for item in newDirectory:
-                        if item in infoDict.keys():
-                            imaName.append(item)
-                            newPath = os.path.join(newSubDir,item)
-                            im = Image.open(newPath)
-                            if infoDict[item] == 1 or infoDict[item] == 0:
-                                label = infoDict[item]
-                                imageMatrix = np.array(im.resize((228,228, 3)))
-                                listImageMatrix.append(imageMatrix)
-                                label_matrix.append(label)
-                            im.close()
-                print(sub_dir)
-            return np.array(listImageMatrix), np.array(label_matrix)
+            for sub_dir in os.listdir(self._image_dir):
+                filepath = os.path.join(self._image_dir, sub_dir)
+                print(filepath)
+                # make sure only directories
+                if os.path.isdir(filepath):
+                    for file in os.listdir(filepath):
+                        # get y_data
+                        key = os.path.join(sub_dir, file)
+                        # make sure key exists in dict
+                        if key in data_dict.keys():
+                            value = data_dict[key]
+                            # make sure y_data is a correct number
+                            if value == 1.0 or value == 0.0:
+                                # get x_data
+                                filename = os.path.join(filepath, file)
+                                im = Image.open(filename)
+                                im_arr = np.array(im.resize((228, 228)))
+                                im.close()
+                                # make sure x_data is correct shape
+                                if im_arr.shape == (228, 228, 3):
+                                    # now that we know y_data and x_data are OK
+                                    x_data.append(im_arr)
+                                    if value == 1.0:
+                                        y_data.append(np.array([0, 1]))
+                                    else:
+                                        y_data.append(np.array([1, 0]))
         except Exception as e:
-                print(str(e))
+            print(str(e))
+        x_data = np.array(x_data)
+        y_data = np.array(y_data)
+        print('shape of x_data: ', x_data.shape)
+
+        return x_data, y_data

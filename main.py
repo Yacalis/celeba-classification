@@ -10,53 +10,61 @@ from sklearn.model_selection import train_test_split
 from Callbacks import Callbacks
 from Config import Config
 from DataLoader import DataLoader
-from folder_defs import get_logdir
+from folder_defs import get_logdir, get_data_dir, get_image_dir
 from train_model import train_model
 from build_model import build_model
 from save_model import save_model
 
 print('Beginning program')
 
-# constants
-epoch_iter = 1
-max_epochs = 200
-model_iter = 1
-batch_size = 4
-batch_size_increase_multiplier = 2
-
 # get config
 configuration = Config()
 config = configuration.config
 
-# set up callbacks
+# get constants
+max_epochs = config.epochs
+batch_size = config.batch_size
+#batch_size_increase_multiplier = 2
+#model_iter = 1
+#epoch_iter = 1
+
+# get directories
 log_dir = get_logdir(config)
+data_dir = get_data_dir()
+image_dir = get_image_dir()
+print('log dir: ', log_dir)
+print('data dir:', data_dir)
+print('image dir', image_dir)
+
+# get callbacks
 callbacks = Callbacks(config, log_dir).callbacks
 
-# load data
-dataloader = DataLoader('/Users/Yacalis/Projects/TensorFlow/cs274c-data/Pictures/test',
-                        '/Users/Yacalis/Projects/TensorFlow/cs274c-data')
+# get data
+print('Loading data...')
+dataloader = DataLoader(data_dir=data_dir, image_dir=image_dir)
 x_data, y_data = dataloader.retrieve_data()
 
-# get input/output data dims
+# get input dim
 input_dim = x_data[0].shape
 
 # split data into training and test sets
 x_train, x_test, y_train, y_test = train_test_split(
     x_data, y_data, test_size=0.2)
 
-# build and train model
+# build model
 model = build_model(input_dim, config)
-model, epoch_iter = train_model(model, x_train, y_train, model_iter, batch_size,
-                                config, callbacks, epoch_iter, max_epochs)
-print('Completed training')
 
-# evaluate and save model
+# train model
+model = train_model(model, x_train, y_train, batch_size, callbacks, max_epochs)
+
+# evaluate model
 score = model.evaluate(x_test, y_test, batch_size=batch_size)
 print('Final score:', score)
-print('Saving model...')
-save_model(config, model)
-print('Completed program')
 
+# save model
+save_model(logdir=log_dir, configuration=configuration, model=model)
+
+print('Completed program')
 
 #x = x_train
 #y = y_train
@@ -74,4 +82,3 @@ print('Completed program')
 #    batch_size *= batch_size_increase_multiplier
 #
 #
-

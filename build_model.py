@@ -57,7 +57,7 @@ def build_model(input_dim, config):
     optimizer = Optimizer(config.optimizer).optimizer
 
     # compile model
-    model.compile(loss='binary_crossentropy',
+    model.compile(loss='crossentropy',
                   optimizer=optimizer,
                   metrics=metrics)
 
