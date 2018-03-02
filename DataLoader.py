@@ -46,12 +46,14 @@ class DataLoader:
         # instantiate arrays
         x_data = []
         y_data = []
+        print('image dir: ', self._image_dir)
+        print('\tsub dirs:')
         try:
             for sub_dir in os.listdir(self._image_dir):
                 filepath = os.path.join(self._image_dir, sub_dir)
-                print(filepath)
                 # make sure only directories
                 if os.path.isdir(filepath):
+                    print('\t\t', sub_dir)
                     for file in os.listdir(filepath):
                         # get y_data
                         key = os.path.join(sub_dir, file)

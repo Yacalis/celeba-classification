@@ -6,7 +6,8 @@ Created on Tue Feb 20 16:31:00 2018
 @author: Yacalis
 """
 
-from keras.callbacks import TensorBoard, EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
+from keras.callbacks import TensorBoard, EarlyStopping, ReduceLROnPlateau
+from keras.callbacks import ModelCheckpoint, History
 
 
 class Callbacks:
@@ -35,7 +36,7 @@ class Callbacks:
             min_delta=config.es_min_delta,
             patience=config.es_patience,
             verbose=1,
-            mode='min'
+            mode='auto'
         )
 
         # ======================================================================
@@ -48,7 +49,7 @@ class Callbacks:
             factor=config.lr_factor,
             patience=config.lr_patience,
             verbose=1,
-            mode='min',
+            mode='auto',
             epsilon=config.lr_epsilon,
             cooldown=0,
             min_lr=config.lr_min_lr
@@ -74,7 +75,10 @@ class Callbacks:
             period=config.period
         )
 
-        callbacks = [tensorboard, model_checkpt]
+        # save history of metrics values, loss (and lr if reduce_lr is present)
+        history = History()
+
+        callbacks = [tensorboard, model_checkpt, history]
         if config.change_lr:
             callbacks.append(reduce_lr_on_plateau)
         if config.change_bs:

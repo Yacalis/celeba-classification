@@ -6,8 +6,6 @@ Created on Tue Feb 20 15:21:00 2018
 @author: Yacalis
 """
 
-import os
-import json
 import configargparse
 
 
@@ -27,32 +25,24 @@ class Config:
         # Callbacks
         cback_arg = parser.add_argument_group('Callbacks')
         # Earlystopping
-        cback_arg.add_argument('--es_min_delta', type=float, default=0.00001)
-        cback_arg.add_argument('--es_patience', type=int, default=10)
+        cback_arg.add_argument('--es_min_delta', type=float, default=0.01)
+        cback_arg.add_argument('--es_patience', type=int, default=4)
         # ReduceLROnPlateau
-        cback_arg.add_argument('--lr_epsilon', type=float, default=1e-04)
-        cback_arg.add_argument('--lr_factor', type=float, default=0.1)
+        cback_arg.add_argument('--lr_epsilon', type=float, default=0.01)
+        cback_arg.add_argument('--lr_factor', type=float, default=0.5)
         cback_arg.add_argument('--lr_min_lr', type=float, default=1e-07)
-        cback_arg.add_argument('--lr_patience', type=int, default=5)
+        cback_arg.add_argument('--lr_patience', type=int, default=4)
         # Model Checkpoint
         cback_arg.add_argument('--period', type=int, default=10)
 
         # Training and testing
         train_arg = parser.add_argument_group('Training')
+        train_arg.add_argument('--test_split', type=float, default=0.2)
+        train_arg.add_argument('--val_split', type=float, default=0.2)
         train_arg.add_argument('--optimizer', type=str, default='adam')
         train_arg.add_argument('--batch_size', type=int, default=4)
-        train_arg.add_argument('--epochs', type=int, default=4)
-        train_arg.add_argument('--change_lr', type=bool, default=True)
-        train_arg.add_argument('--change_bs', type=bool, default=False)
+        train_arg.add_argument('--epochs', type=int, default=20)
+        train_arg.add_argument('--change_lr', type=bool, default=False)
+        train_arg.add_argument('--change_bs', type=bool, default=True)
 
         return parser.parse_known_args()
-
-    @staticmethod
-    def save_config(config: object, logdir: str) -> None:
-        param_path = os.path.join(logdir, 'params.json')
-        try:
-            os.makedirs(logdir)
-        except:
-            pass
-        with open(param_path, 'w') as f:
-            json.dump(config.__dict__, f, indent=4, sort_keys=True)

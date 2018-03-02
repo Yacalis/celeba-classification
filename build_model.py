@@ -46,6 +46,9 @@ def build_model(input_dim, config):
     model.add(Dense(512, activation='relu'))
     model.add(Dropout(0.5))
     model.add(Dense(2, activation='softmax'))
+    #model.add(Dense(1, activation='sigmoid'))
+
+    print('Finished building model')
 
     # ==========================================================================
     # Compile Model
@@ -53,14 +56,19 @@ def build_model(input_dim, config):
     print('Compiling model...')
 
     # set up metrics and optimizer
-    metrics = []
+    metrics = ['accuracy']
     optimizer = Optimizer(config.optimizer).optimizer
 
     # compile model
-    model.compile(loss='crossentropy',
+    model.compile(loss='categorical_crossentropy',
                   optimizer=optimizer,
                   metrics=metrics)
 
-    print('Finished compiling, model summary:', model.summary())
+    #model.compile(loss='binary_crossentropy',
+    #              optimizer=optimizer,
+    #              metrics=metrics)
+
+    model.summary()
+    print('Finished compiling')
 
     return model

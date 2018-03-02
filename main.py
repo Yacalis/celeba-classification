@@ -6,6 +6,8 @@ Created on Tue Feb 20 15:10:00 2018
 @author: Yacalis
 """
 
+import os
+import json
 from sklearn.model_selection import train_test_split
 from Callbacks import Callbacks
 from Config import Config
@@ -14,71 +16,132 @@ from folder_defs import get_logdir, get_data_dir, get_image_dir
 from train_model import train_model
 from build_model import build_model
 from save_model import save_model
+from keras.models import load_model
 
-print('Beginning program')
 
-# get config
-configuration = Config()
-config = configuration.config
+def main():
+    print('Beginning program')
 
-# get constants
-max_epochs = config.epochs
-batch_size = config.batch_size
-#batch_size_increase_multiplier = 2
-#model_iter = 1
-#epoch_iter = 1
+    # get config
+    config = Config().config
+    if config.change_bs == config.change_lr:
+        raise Exception(f'[!] Error: config.change_bs and config.change_lr '
+                        f'should be different bool values, but they are both '
+                        f'{config.change_bs} -- please set one and only one of '
+                        f'them to True')
 
-# get directories
-log_dir = get_logdir(config)
-data_dir = get_data_dir()
-image_dir = get_image_dir()
-print('log dir: ', log_dir)
-print('data dir:', data_dir)
-print('image dir', image_dir)
+    # get constants
+    max_epochs = config.epochs
+    batch_size = config.batch_size
+    batch_size_increase_multiplier = 2
+    model_iter = 0
+    epoch_iter = 1
 
-# get callbacks
-callbacks = Callbacks(config, log_dir).callbacks
+    # get directories
+    log_dir = get_logdir(config)
+    data_dir = get_data_dir()
+    image_dir = get_image_dir()
+    print('log dir:', log_dir)
+    print('data dir:', data_dir)
+    print('image dir:', image_dir)
 
-# get data
-print('Loading data...')
-dataloader = DataLoader(data_dir=data_dir, image_dir=image_dir)
-x_data, y_data = dataloader.retrieve_data()
+    # get callbacks
+    callbacks = Callbacks(config, log_dir).callbacks
+    print('callbacks:')
+    for callback in callbacks:
+        print('\t', callback)
 
-# get input dim
-input_dim = x_data[0].shape
+    # get data
+    print('Loading data...')
+    dataloader = DataLoader(data_dir=data_dir, image_dir=image_dir)
+    x_data, y_data = dataloader.retrieve_data()
 
-# split data into training and test sets
-x_train, x_test, y_train, y_test = train_test_split(
-    x_data, y_data, test_size=0.2)
+    # get input dim
+    input_dim = x_data[0].shape
+    print('input dim:', input_dim)
+    print('len of data:', x_data.shape[0])
 
-# build model
-model = build_model(input_dim, config)
+    # split data into training and test sets - shuffles by default
+    x_train, x_test, y_train, y_test = train_test_split(
+        x_data, y_data, test_size=config.test_split)
+    num_train = int(x_train.shape[0] * (1 - config.val_split))
+    print(f'Num training examples (excludes test and val): {num_train}')
 
-# train model
-model = train_model(model, x_train, y_train, batch_size, callbacks, max_epochs)
+    # build model
+    model = build_model(input_dim, config)
 
-# evaluate model
-score = model.evaluate(x_test, y_test, batch_size=batch_size)
-print('Final score:', score)
+    # save initial model
+    save_model(log_dir=log_dir, config=config, model=model)
 
-# save model
-save_model(logdir=log_dir, configuration=configuration, model=model)
+    # set variables
+    val_loss = []
+    val_acc = []
+    loss = []
+    acc = []
+    lr = []
+    bs = []
 
-print('Completed program')
+    # train model
+    if config.change_lr:  # reduce_lr callback takes care of everything for us
+        print('Will reduce learning rate during training, but not batch size')
+        print('Training model...')
+        model, history = train_model(model, x_train, y_train,
+                                     batch_size, max_epochs, callbacks, config)
+        val_loss += history.history['val_loss']
+        val_acc += history.history['val_acc']
+        loss += history.history['loss']
+        acc += history.history['acc']
+        lr += history.history['lr']
+        for i in range(len(history.history['lr'])):
+            bs.append(batch_size)
+    elif config.change_bs:  # need to manually stop and restart training
+        print('Will reduce batch size during training, but not learning rate')
+        # load model with its current weights
+        model = load_model(os.path.join(log_dir, 'model.hdf5'))
+        while max_epochs >= epoch_iter:
+            print(f'Currently at epoch {epoch_iter} of {max_epochs}')
+            print(f'Batch size is {batch_size}')
+            bs.append(batch_size)
+            epochs = max_epochs - epoch_iter + 1
+            model, history = train_model(model, x_train, y_train,
+                                         batch_size, epochs, callbacks, config)
+            epoch_iter += len(history.epoch)
+            val_loss += history.history['val_loss']
+            val_acc += history.history['val_acc']
+            loss += history.history['loss']
+            acc += history.history['acc']
+            model_iter += 1
+            batch_size *= batch_size_increase_multiplier
+            batch_size = batch_size if batch_size < num_train else num_train
+            save_model(log_dir=log_dir, config=config, model=model)
+        for i in range(len(history.history['lr'])):
+            lr.append(0.001)
+        print(f'Total times batch size was increased: {model_iter}')
+    else:
+        raise Exception(f'[!] Error: config.change_bs and config.change_lr were'
+                        f' both set to False -- please set one of them to True')
+    print('Completed training')
 
-#x = x_train
-#y = y_train
-# run main routine
-#while max_epochs > epoch_iter:
-#    model, epoch_iter = train_model(model, x, y, model_iter, batch_size,
-#                                    config, callbacks, epoch_iter, max_epochs)
-#
-#    score = model.evaluate(x_test, y_test, batch_size=batch_size)
-#    print(f'Score for {model_iter} is {score}')
-#
-#    x = x
-#    y = y
-#    model_iter += 1
-#    batch_size *= batch_size_increase_multiplier
-#
-#
+    # evaluate model
+    print('Calculating final score...')
+    score = model.evaluate(x_test, y_test, batch_size=batch_size)
+    print('Final score:', score)
+
+    # save finished model and loss, accuracy, and lr values
+    save_model(log_dir=log_dir, config=config, model=model)
+    acc_loss_lr_bs = {'val_loss': val_loss,
+                   'val_acc': val_acc,
+                   'loss': loss,
+                   'acc': acc,
+                   'lr': lr,
+                   'bs': bs
+                   }
+    acc_loss_lr_bs_path = os.path.join(log_dir, 'acc_loss_lr_bs.json')
+    with open(acc_loss_lr_bs_path, 'w') as f:
+        json.dump(acc_loss_lr_bs, f, indent=4, sort_keys=True)
+
+    print('Completed program')
+
+
+if __name__ == '__main__':
+    main()
