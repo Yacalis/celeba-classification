@@ -24,11 +24,14 @@ def main():
 
     # get config
     config = Config().config
+    print('change lr:', config.change_lr)
+    print('change bs:', config.change_bs)
+    print('max epochs:', config.epochs)
     if config.change_bs == config.change_lr:
-        raise Exception(f'[!] Error: config.change_bs and config.change_lr '
-                        f'should be different bool values, but they are both '
-                        f'{config.change_bs} -- please set one and only one of '
-                        f'them to True')
+        print(f'[!] Whoops: config.change_bs and config.change_lr should be '
+              f'different bool values, but they are both {config.change_bs} '
+              f'-- please set one and only one of them to True')
+        return
 
     # get constants
     max_epochs = config.epochs
@@ -118,8 +121,9 @@ def main():
             lr.append(0.001)
         print(f'Total times batch size was increased: {model_iter}')
     else:
-        raise Exception(f'[!] Error: config.change_bs and config.change_lr were'
-                        f' both set to False -- please set one of them to True')
+        print(f'[!] Whoops: config.change_bs and config.change_lr are both '
+              f'set to False - please set one of them to True')
+        return
     print('Completed training')
 
     # evaluate model
@@ -141,6 +145,8 @@ def main():
         json.dump(acc_loss_lr_bs, f, indent=4, sort_keys=True)
 
     print('Completed program')
+
+    return
 
 
 if __name__ == '__main__':
