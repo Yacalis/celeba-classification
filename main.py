@@ -8,6 +8,7 @@ Created on Tue Feb 20 15:10:00 2018
 
 import os
 import json
+import numpy as np
 from sklearn.model_selection import train_test_split
 from Callbacks import Callbacks
 from Config import Config
@@ -95,8 +96,7 @@ def main():
         loss += history.history['loss']
         acc += history.history['acc']
         lr += history.history['lr']
-        for i in range(len(history.history['lr'])):
-            bs.append(batch_size)
+        bs = [batch_size for i in range(len(lr))]
     elif config.change_bs:  # need to manually stop and restart training
         print('Will reduce batch size during training, but not learning rate')
         # load model with its current weights
@@ -104,11 +104,11 @@ def main():
         while max_epochs >= epoch_iter:
             print(f'Currently at epoch {epoch_iter} of {max_epochs}')
             print(f'Batch size is {batch_size}')
-            bs.append(batch_size)
             epochs = max_epochs - epoch_iter + 1
             model, history = train_model(model, x_train, y_train,
                                          batch_size, epochs, callbacks, config)
             epoch_iter += len(history.epoch)
+            bs += [batch_size for i in range(len(history.epoch))]
             val_loss += history.history['val_loss']
             val_acc += history.history['val_acc']
             loss += history.history['loss']
@@ -117,9 +117,8 @@ def main():
             batch_size *= batch_size_increase_multiplier
             batch_size = batch_size if batch_size < num_train else num_train
             save_model(log_dir=log_dir, config=config, model=model)
-        for i in range(len(history.history['lr'])):
-            lr.append(0.001)
-        print(f'Total times batch size was increased: {model_iter}')
+        lr = [0.001 for i in range(len(bs))]
+        print(f'Total times batch size was increased: {model_iter - 1}')
     else:
         print(f'[!] Whoops: config.change_bs and config.change_lr are both '
               f'set to False - please set one of them to True')
@@ -134,12 +133,12 @@ def main():
     # save finished model and loss, accuracy, and lr values
     save_model(log_dir=log_dir, config=config, model=model)
     acc_loss_lr_bs = {'val_loss': val_loss,
-                   'val_acc': val_acc,
-                   'loss': loss,
-                   'acc': acc,
-                   'lr': lr,
-                   'bs': bs
-                   }
+                      'val_acc': val_acc,
+                      'loss': loss,
+                      'acc': acc,
+                      'lr': [np.float64(i) for i in lr],
+                      'bs': bs
+                      }
     acc_loss_lr_bs_path = os.path.join(log_dir, 'acc_loss_lr_bs.json')
     with open(acc_loss_lr_bs_path, 'w') as f:
         json.dump(acc_loss_lr_bs, f, indent=4, sort_keys=True)

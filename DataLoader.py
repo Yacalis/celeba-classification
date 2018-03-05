@@ -71,6 +71,7 @@ class DataLoader:
                                 if im_arr.shape == (228, 228, 3):
                                     # now that we know y_data and x_data are OK
                                     x_data.append(im_arr)
+                                    #y_data.append(value)
                                     if value == 1.0:
                                         y_data.append(np.array([0, 1]))
                                     else:
