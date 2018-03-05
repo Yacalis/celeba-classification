@@ -17,7 +17,7 @@ from folder_defs import get_logdir, get_data_dir, get_image_dir
 from train_model import train_model
 from build_model import build_model
 from save_model import save_model
-from keras.models import load_model
+from get_data_dict import get_data_dict
 
 
 def main():
@@ -34,13 +34,6 @@ def main():
               f'-- please set one and only one of them to True')
         return
 
-    # get constants
-    max_epochs = config.epochs
-    batch_size = config.batch_size
-    batch_size_increase_multiplier = 2
-    model_iter = 0
-    epoch_iter = 1
-
     # get directories
     log_dir = get_logdir(config)
     data_dir = get_data_dir()
@@ -49,15 +42,10 @@ def main():
     print('data dir:', data_dir)
     print('image dir:', image_dir)
 
-    # get callbacks
-    callbacks = Callbacks(config, log_dir).callbacks
-    print('callbacks:')
-    for callback in callbacks:
-        print('\t', callback)
-
     # get data
     print('Loading data...')
-    dataloader = DataLoader(data_dir=data_dir, image_dir=image_dir)
+    data_dict = get_data_dict(data_dir)
+    dataloader = DataLoader(data_dict=data_dict, image_dir=image_dir)
     x_data, y_data = dataloader.retrieve_data()
 
     # get input dim
@@ -84,54 +72,63 @@ def main():
     acc = []
     lr = []
     bs = []
+    max_epochs = config.epochs
+    batch_size = config.batch_size
+    batch_size_mult = 2
+    epoch_iter = 1
+
+    # get callbacks
+    callbacks = Callbacks(config, log_dir).callbacks
+    print('callbacks:')
+    for callback in callbacks:
+        print('\t', callback)
 
     # train model
     if config.change_lr:  # reduce_lr callback takes care of everything for us
         print('Will reduce learning rate during training, but not batch size')
         print('Training model...')
-        model, history = train_model(model, x_train, y_train,
-                                     batch_size, max_epochs, callbacks, config)
+        model, history = train_model(model, x_train, y_train, batch_size, max_epochs, callbacks, config)
+
+        # store history (bs is constant)
         val_loss += history.history['val_loss']
         val_acc += history.history['val_acc']
         loss += history.history['loss']
         acc += history.history['acc']
         lr += history.history['lr']
         bs = [batch_size for i in range(len(lr))]
+
     elif config.change_bs:  # need to manually stop and restart training
         print('Will reduce batch size during training, but not learning rate')
-        # load model with its current weights
-        model = load_model(os.path.join(log_dir, 'model.hdf5'))
         while max_epochs >= epoch_iter:
-            print(f'Currently at epoch {epoch_iter} of {max_epochs}')
-            print(f'Batch size is {batch_size}')
+            print(f'Currently at epoch {epoch_iter} of {max_epochs}, batch size is {batch_size}')
             epochs = max_epochs - epoch_iter + 1
-            model, history = train_model(model, x_train, y_train,
-                                         batch_size, epochs, callbacks, config)
-            epoch_iter += len(history.epoch)
-            bs += [batch_size for i in range(len(history.epoch))]
+            model, history = train_model(model, x_train, y_train, batch_size, epochs, callbacks, config)
+
+            # store history
             val_loss += history.history['val_loss']
             val_acc += history.history['val_acc']
             loss += history.history['loss']
             acc += history.history['acc']
-            model_iter += 1
-            batch_size *= batch_size_increase_multiplier
+            bs += [batch_size for i in range(len(history.epoch))]
+
+            # update training parameters
+            epoch_iter += len(history.epoch)
+            batch_size *= batch_size_mult
             batch_size = batch_size if batch_size < num_train else num_train
-            save_model(log_dir=log_dir, config=config, model=model)
+
+        # store lr history as constant
         lr = [0.001 for i in range(len(bs))]
-        print(f'Total times batch size was increased: {model_iter - 1}')
+
     else:
         print(f'[!] Whoops: config.change_bs and config.change_lr are both '
               f'set to False - please set one of them to True')
         return
     print('Completed training')
 
-    # evaluate model
-    print('Calculating final score...')
-    score = model.evaluate(x_test, y_test, batch_size=batch_size)
-    print('Final score:', score)
-
-    # save finished model and loss, accuracy, and lr values
+    # save finished model
     save_model(log_dir=log_dir, config=config, model=model)
+
+    # save loss, accuracy, lr, and bs values across epochs as json
     acc_loss_lr_bs = {'val_loss': val_loss,
                       'val_acc': val_acc,
                       'loss': loss,
@@ -142,6 +139,11 @@ def main():
     acc_loss_lr_bs_path = os.path.join(log_dir, 'acc_loss_lr_bs.json')
     with open(acc_loss_lr_bs_path, 'w') as f:
         json.dump(acc_loss_lr_bs, f, indent=4, sort_keys=True)
+
+    # evaluate model
+    print('Calculating final score...')
+    score = model.evaluate(x_test, y_test, batch_size=batch_size)
+    print('Final score:', score)
 
     print('Completed program')
 

@@ -41,8 +41,8 @@ class Config:
         train_arg.add_argument('--val_split', type=float, default=0.2)
         train_arg.add_argument('--optimizer', type=str, default='adam')
         train_arg.add_argument('--batch_size', type=int, default=4)
-        train_arg.add_argument('--epochs', type=int, default=10)
-        train_arg.add_argument('--change_lr', type=bool, default=False)
+        train_arg.add_argument('--epochs', type=int, default=5)
+        train_arg.add_argument('--change_lr', type=bool, default=True)
         train_arg.add_argument('--change_bs', type=bool, default=False)
 
         return parser.parse_known_args()
