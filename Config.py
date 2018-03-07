@@ -31,7 +31,7 @@ class Config:
         cback_arg.add_argument('--lr_epsilon', type=float, default=0.01)
         cback_arg.add_argument('--lr_factor', type=float, default=0.5)
         cback_arg.add_argument('--lr_min_lr', type=float, default=1e-07)
-        cback_arg.add_argument('--lr_patience', type=int, default=3)
+        cback_arg.add_argument('--lr_patience', type=int, default=2)
         # Model Checkpoint
         cback_arg.add_argument('--period', type=int, default=10)
 
@@ -42,5 +42,7 @@ class Config:
         train_arg.add_argument('--epochs', type=int, default=20)
         train_arg.add_argument('--change_lr', type=bool, default=True)
         train_arg.add_argument('--change_bs', type=bool, default=False)
+        # options for complexity are: simple, complex, or single
+        train_arg.add_argument('--complexity', type=str, default='complex')
 
         return parser.parse_known_args()
