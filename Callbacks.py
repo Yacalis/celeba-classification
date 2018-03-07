@@ -32,11 +32,11 @@ class Callbacks:
         # within 'patience' number of epochs, stop training
         # ======================================================================
         earlystopping = EarlyStopping(
-            monitor='val_loss',
+            monitor='val_acc',
             min_delta=config.es_min_delta,
             patience=config.es_patience,
             verbose=1,
-            mode='auto'
+            mode='max'
         )
 
         # ======================================================================
@@ -45,11 +45,11 @@ class Callbacks:
         # model by 'factor', up to a minimum value of 'min_lr'
         # ======================================================================
         reduce_lr_on_plateau = ReduceLROnPlateau(
-            monitor='val_loss',
+            monitor='val_acc',
             factor=config.lr_factor,
             patience=config.lr_patience,
             verbose=1,
-            mode='auto',
+            mode='max',
             epsilon=config.lr_epsilon,
             cooldown=0,
             min_lr=config.lr_min_lr
@@ -67,11 +67,11 @@ class Callbacks:
         chckpt_fp = log_dir + '/chckpt.ep_{epoch:02d}-loss_{val_loss:.2f}.hdf5'
         model_checkpt = ModelCheckpoint(
             chckpt_fp,
-            monitor='val_loss',
+            monitor='val_acc',
             verbose=1,
             save_best_only=False,
             save_weights_only=False,
-            mode='auto',
+            mode='max',
             period=config.period
         )
 

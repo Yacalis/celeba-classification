@@ -37,11 +37,9 @@ class Config:
 
         # Training and testing
         train_arg = parser.add_argument_group('Training')
-        train_arg.add_argument('--test_split', type=float, default=0.2)
-        train_arg.add_argument('--val_split', type=float, default=0.2)
         train_arg.add_argument('--optimizer', type=str, default='adam')
         train_arg.add_argument('--batch_size', type=int, default=4)
-        train_arg.add_argument('--epochs', type=int, default=5)
+        train_arg.add_argument('--epochs', type=int, default=20)
         train_arg.add_argument('--change_lr', type=bool, default=True)
         train_arg.add_argument('--change_bs', type=bool, default=False)
 

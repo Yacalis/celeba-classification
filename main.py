@@ -9,11 +9,10 @@ Created on Tue Feb 20 15:10:00 2018
 import os
 import json
 import numpy as np
-from sklearn.model_selection import train_test_split
 from Callbacks import Callbacks
 from Config import Config
-from DataLoader import DataLoader
-from folder_defs import get_logdir, get_data_dir, get_image_dir
+from DataLoader import retrieve_data
+from folder_defs import get_log_dir, get_data_dir, get_train_dir, get_test_dir
 from train_model import train_model
 from build_model import build_model
 from save_model import save_model
@@ -35,34 +34,25 @@ def main():
         return
 
     # get directories
-    log_dir = get_logdir(config)
+    log_dir = get_log_dir(config)
     data_dir = get_data_dir()
-    image_dir = get_image_dir()
+    train_dir = get_train_dir()
+    test_dir = get_test_dir()
     print('log dir:', log_dir)
     print('data dir:', data_dir)
-    print('image dir:', image_dir)
+    print('train dir:', train_dir)
+    print('test dir:', test_dir)
 
     # get data
     print('Loading data...')
     data_dict = get_data_dict(data_dir)
-    dataloader = DataLoader(data_dict=data_dict, image_dir=image_dir)
-    x_data, y_data = dataloader.retrieve_data()
-
-    # get input dim
-    input_dim = x_data[0].shape
-    print('input dim:', input_dim)
-    print('len of data:', x_data.shape[0])
-
-    # split data into training and test sets - shuffles by default
-    x_train, x_test, y_train, y_test = train_test_split(
-        x_data, y_data, test_size=config.test_split)
-    num_train = int(x_train.shape[0] * (1 - config.val_split))
+    x_data, y_data = retrieve_data(data_dict=data_dict, image_dir=train_dir)
+    num_train = int(x_data.shape[0] * 0.8)
     print(f'Num training examples (excludes test and val): {num_train}')
 
-    # build model
+    # build and save initial model
+    input_dim = x_data[0].shape
     model = build_model(input_dim, config)
-
-    # save initial model
     save_model(log_dir=log_dir, config=config, model=model)
 
     # set variables
@@ -87,7 +77,7 @@ def main():
     if config.change_lr:  # reduce_lr callback takes care of everything for us
         print('Will reduce learning rate during training, but not batch size')
         print('Training model...')
-        model, history = train_model(model, x_train, y_train, batch_size, max_epochs, callbacks, config)
+        model, history = train_model(model, x_data, y_data, batch_size, max_epochs, callbacks)
 
         # store history (bs is constant)
         val_loss += history.history['val_loss']
@@ -102,7 +92,7 @@ def main():
         while max_epochs >= epoch_iter:
             print(f'Currently at epoch {epoch_iter} of {max_epochs}, batch size is {batch_size}')
             epochs = max_epochs - epoch_iter + 1
-            model, history = train_model(model, x_train, y_train, batch_size, epochs, callbacks, config)
+            model, history = train_model(model, x_data, y_data, batch_size, epochs, callbacks)
 
             # store history
             val_loss += history.history['val_loss']
@@ -119,10 +109,11 @@ def main():
         # store lr history as constant
         lr = [0.001 for i in range(len(bs))]
 
-    else:
+    else:  # this should never happen
         print(f'[!] Whoops: config.change_bs and config.change_lr are both '
               f'set to False - please set one of them to True')
         return
+
     print('Completed training')
 
     # save finished model
@@ -142,7 +133,8 @@ def main():
 
     # evaluate model
     print('Calculating final score...')
-    score = model.evaluate(x_test, y_test, batch_size=batch_size)
+    x_data, y_data = retrieve_data(data_dict=data_dict, image_dir=test_dir)
+    score = model.evaluate(x_data, y_data, batch_size=batch_size)
     print('Final score:', score)
 
     print('Completed program')
