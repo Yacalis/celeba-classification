@@ -78,10 +78,8 @@ class Callbacks:
         # save history of metrics values, loss (and lr if reduce_lr is present)
         history = History()
 
-        callbacks = [tensorboard, model_checkpt, history]
+        callbacks = [tensorboard, model_checkpt, history, earlystopping]
         if config.change_lr:
             callbacks.append(reduce_lr_on_plateau)
-        if config.change_bs:
-            callbacks.append(earlystopping)
 
         return callbacks

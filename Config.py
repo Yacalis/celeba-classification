@@ -31,7 +31,7 @@ class Config:
         cback_arg.add_argument('--lr_epsilon', type=float, default=0.01)
         cback_arg.add_argument('--lr_factor', type=float, default=0.5)
         cback_arg.add_argument('--lr_min_lr', type=float, default=1e-07)
-        cback_arg.add_argument('--lr_patience', type=int, default=4)
+        cback_arg.add_argument('--lr_patience', type=int, default=3)
         # Model Checkpoint
         cback_arg.add_argument('--period', type=int, default=10)
 

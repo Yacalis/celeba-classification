@@ -52,7 +52,7 @@ def main():
 
     # build and save initial model
     input_dim = x_data[0].shape
-    model = build_model(input_dim, config)
+    model = build_model(input_dim, config, model_type='simple')
     save_model(log_dir=log_dir, config=config, model=model)
 
     # set variables

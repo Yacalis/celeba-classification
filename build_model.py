@@ -13,13 +13,47 @@ from keras.models import Sequential
 from Optimizer import Optimizer
 
 
-def build_model(input_dim, config):
-    # ==========================================================================
-    # Build Model
-    # ==========================================================================
+def build_model(input_dim: int, config: object, model_type: str) -> object:
     print('Building model...')
+    if model_type == 'complex':
+        return build_model_complex(input_dim, config)
+    elif model_type == 'simple':
+        return build_model_simple(input_dim, config)
+    else:
+        return build_model_single_convo(input_dim, config)
 
-    # create layer arrangement
+
+def build_model_single_convo(input_dim, config):
+    model = Sequential()
+    model.add(Conv2D(512,
+                     kernel_size=(32, 32),
+                     activation='relu',
+                     input_shape=input_dim))
+    model.add(MaxPooling2D(pool_size=(8, 8), strides=(8, 8)))
+    model.add(Flatten())
+    model.add(Dense(units=1024, activation='relu'))
+    model.add(Dense(units=2, activation='softmax'))
+    return compile_model(model, config)
+
+
+def build_model_simple(input_dim, config):
+    model = Sequential()
+    model.add(Conv2D(32,
+                     kernel_size=(3, 3),
+                     activation='relu',
+                     input_shape=input_dim))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Conv2D(32,
+                     kernel_size=(3, 3),
+                     activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Flatten())
+    model.add(Dense(units=128, activation='relu'))
+    model.add(Dense(units=2, activation='softmax'))
+    return compile_model(model, config)
+
+
+def build_model_complex(input_dim, config):
     model = Sequential()
     model.add(Conv2D(96,
                      kernel_size=(7, 7),
@@ -47,28 +81,19 @@ def build_model(input_dim, config):
     model.add(Dropout(0.5))
     model.add(Dense(2, activation='softmax'))
     #model.add(Dense(1, activation='sigmoid'))
+    return compile_model(model, config)
 
+
+def compile_model(model: object, config: object) -> object:
     print('Finished building model')
-
-    # ==========================================================================
-    # Compile Model
-    # ==========================================================================
     print('Compiling model...')
-
     # set up metrics and optimizer
     metrics = ['accuracy']
     optimizer = Optimizer(config.optimizer).optimizer
-
     # compile model
-    model.compile(loss='categorical_crossentropy',
+    model.compile(loss='binary_crossentropy',
                   optimizer=optimizer,
                   metrics=metrics)
-
-    #model.compile(loss='binary_crossentropy',
-    #              optimizer=optimizer,
-    #              metrics=metrics)
-
-    model.summary()
     print('Finished compiling')
-
+    model.summary()
     return model
