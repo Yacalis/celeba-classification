@@ -13,7 +13,6 @@ from Callbacks import Callbacks
 from Config import Config
 from dataLoader import retrieve_data
 from folder_defs import get_log_dir, get_data_dir, get_train_dir, get_test_dir
-from train_model import train_model
 from build_model import build_model
 from save_model import save_model
 from get_data_dict import get_data_dict
@@ -75,10 +74,16 @@ def main():
 
     # train model
     if config.change_lr:  # reduce_lr callback takes care of everything for us
-        print('Will reduce learning rate during training, but not batch size')
+        print('Will change learning rate during training, but not batch size')
         print('Training model...')
-        model, history = train_model(model, x_data, y_data, batch_size, max_epochs, callbacks)
-
+        history = model.fit(x_data,
+                            y_data,
+                            epochs=max_epochs,
+                            batch_size=batch_size,
+                            shuffle=True,
+                            validation_split=0.2,
+                            verbose=1,
+                            callbacks=callbacks)
         # store history (bs is constant)
         val_loss += history.history['val_loss']
         val_acc += history.history['val_acc']
@@ -88,12 +93,18 @@ def main():
         bs = [batch_size for i in range(len(lr))]
 
     elif config.change_bs:  # need to manually stop and restart training
-        print('Will reduce batch size during training, but not learning rate')
+        print('Will change batch size during training, but not learning rate')
         while max_epochs >= epoch_iter:
             print(f'Currently at epoch {epoch_iter} of {max_epochs}, batch size is {batch_size}')
             epochs = max_epochs - epoch_iter + 1
-            model, history = train_model(model, x_data, y_data, batch_size, epochs, callbacks)
-
+            history = model.fit(x_data,
+                                y_data,
+                                epochs=epochs,
+                                batch_size=batch_size,
+                                shuffle=True,
+                                validation_split=0.2,
+                                verbose=1,
+                                callbacks=callbacks)
             # store history
             val_loss += history.history['val_loss']
             val_acc += history.history['val_acc']
@@ -106,7 +117,7 @@ def main():
             batch_size *= batch_size_mult
             batch_size = batch_size if batch_size < num_train else num_train
 
-        # store lr history as constant
+        # store lr history as constant (because it is)
         lr = [0.001 for i in range(len(bs))]
 
     else:  # this should never happen
@@ -116,10 +127,12 @@ def main():
 
     print('Completed training')
 
-    # save finished model
+    # save finished model -- overrides original model saved before training
     save_model(log_dir=log_dir, config=config, model=model)
 
-    # save loss, accuracy, lr, and bs values across epochs as json
+    # save loss, accuracy, lr, and bs values across epochs as json;
+    # have to force cast lr vals as float64 because history object saves them
+    # as float32, and json.dump() is not compatible with float32
     acc_loss_lr_bs = {'val_loss': val_loss,
                       'val_acc': val_acc,
                       'loss': loss,
@@ -131,10 +144,10 @@ def main():
     with open(acc_loss_lr_bs_path, 'w') as f:
         json.dump(acc_loss_lr_bs, f, indent=4, sort_keys=True)
 
-    # evaluate model
+    # evaluate model (on original batch size)
     print('Calculating final score...')
     x_data, y_data = retrieve_data(data_dict=data_dict, image_dir=test_dir)
-    score = model.evaluate(x_data, y_data, batch_size=batch_size)
+    score = model.evaluate(x_data, y_data, batch_size=config.batch_size)
     print('Final score:', score)
 
     print('Completed program')
