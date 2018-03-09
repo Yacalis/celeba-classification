@@ -11,7 +11,7 @@ import json
 import numpy as np
 from Callbacks import Callbacks
 from Config import Config
-from DataLoader import retrieve_data
+from dataLoader import retrieve_data
 from folder_defs import get_log_dir, get_data_dir, get_train_dir, get_test_dir
 from train_model import train_model
 from build_model import build_model
