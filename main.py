@@ -12,11 +12,11 @@ import numpy as np
 from Callbacks import Callbacks
 from Config import Config
 from dataLoader import retrieve_data
-from folder_defs import get_log_dir, get_data_dir, get_train_dir, get_test_dir
+from folder_defs import get_log_dir, get_data_dir, get_train_dir, get_test_dir, get_celeba_dir
 from build_model import build_model
 from save_model import save_model
-from get_data_dict import get_data_dict, get_new_data_dict
-
+from get_data_dict import get_data_dict, get_new_data_dict, get_celeba_data
+from sklearn.model_selection import train_test_split
 
 def main():
     print('Beginning program')
@@ -34,18 +34,21 @@ def main():
     # get directories
     log_dir = get_log_dir(config)
     data_dir = get_data_dir()
-    train_dir = get_train_dir()
-    test_dir = get_test_dir()
+    #train_dir = get_train_dir()
+    #test_dir = get_test_dir()
+    image_dir = get_celeba_dir()
     print('log dir:', log_dir)
     print('data dir:', data_dir)
-    print('train dir:', train_dir)
-    print('test dir:', test_dir)
+    #print('train dir:', train_dir)
+    #print('test dir:', test_dir)
+    print('image_dir:', image_dir)
 
     # get data
     print('Loading data...')
-    data_dict = get_new_data_dict(data_dir)
-    x_data, y_data = retrieve_data(data_dict=data_dict, image_dir=train_dir)
-    num_train = int(x_data.shape[0] * 0.8)
+    data_dict = get_celeba_data(data_dir)
+    x_data, y_data = retrieve_data(data_dict=data_dict, image_dir=image_dir)
+    x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.2, shuffle=True)
+    num_train = int(x_train.shape[0] * 0.8)
     print(f'Num training examples (excludes test and val): {num_train}')
 
     # build and save initial model

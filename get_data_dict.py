@@ -55,3 +55,26 @@ def get_new_data_dict(data_dir) -> dict:
     print('number of records from data file: ', len(filename_gender_dict.keys()))
 
     return filename_gender_dict
+
+
+def get_celeba_data(data_dir) -> dict:
+    data_file = os.path.join(data_dir, "list_attr.csv")
+    print('data file: ', data_file)
+
+    # instantiate dict
+    filename_gender_dict = {}
+
+    # load csv data to dict
+    with open(data_file, mode='r') as file:
+        reader = csv.reader(file)
+        for image_id, eyeglasses, male, smiling in reader:
+            try:
+                value = [int(eyeglasses), int(male), int(smiling)],
+                filename_gender_dict[image_id] = value
+            except:
+                pass
+
+    print('number of records from data file: ',
+          len(filename_gender_dict.keys()))
+
+    return filename_gender_dict
