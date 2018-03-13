@@ -15,7 +15,7 @@ from dataLoader import retrieve_data
 from folder_defs import get_log_dir, get_data_dir, get_train_dir, get_test_dir
 from build_model import build_model
 from save_model import save_model
-from get_data_dict import get_data_dict
+from get_data_dict import get_data_dict, get_new_data_dict
 
 
 def main():
@@ -44,7 +44,7 @@ def main():
 
     # get data
     print('Loading data...')
-    data_dict = get_data_dict(data_dir)
+    data_dict = get_new_data_dict(data_dir)
     x_data, y_data = retrieve_data(data_dict=data_dict, image_dir=train_dir)
     num_train = int(x_data.shape[0] * 0.8)
     print(f'Num training examples (excludes test and val): {num_train}')
