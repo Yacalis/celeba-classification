@@ -26,10 +26,9 @@ def main():
     print('change lr:', config.change_lr)
     print('change bs:', config.change_bs)
     print('max epochs:', config.epochs)
-    if config.change_bs == config.change_lr:
-        print(f'[!] Whoops: config.change_bs and config.change_lr should be '
-              f'different bool values, but they are both {config.change_bs} '
-              f'-- please set one and only one of them to True')
+    if config.change_bs and config.change_lr:
+        print('[!] Whoops: both config.change_bs and config.change_lr are '
+              'true -- at least one of them should be false.')
         return
 
     # get directories
@@ -90,7 +89,7 @@ def main():
         loss += history.history['loss']
         acc += history.history['acc']
         lr += history.history['lr']
-        bs = [batch_size for i in range(len(lr))]
+        bs = [batch_size for i in range(len(history.epoch))]
 
     elif config.change_bs:  # need to manually stop and restart training
         print('Will change batch size during training, but not learning rate')
@@ -118,11 +117,26 @@ def main():
             batch_size = batch_size if batch_size < num_train else num_train
 
         # store lr history as constant (because it is)
-        lr = [0.001 for i in range(len(bs))]
+        lr = [0.001 for i in range(len(val_loss))]
 
-    else:  # this should never happen
-        print(f'[!] Whoops: config.change_bs and config.change_lr are both '
-              f'set to False - please set one of them to True')
+    else:
+        print('Will not change learning rate nor batch size during training')
+        print('Training model...')
+        history = model.fit(x_data,
+                            y_data,
+                            epochs=max_epochs,
+                            batch_size=batch_size,
+                            shuffle=True,
+                            validation_split=0.2,
+                            verbose=1,
+                            callbacks=callbacks)
+        # store history (bs is constant)
+        val_loss += history.history['val_loss']
+        val_acc += history.history['val_acc']
+        loss += history.history['loss']
+        acc += history.history['acc']
+        lr = [0.001 for i in range(len(history.epoch))]
+        bs = [batch_size for i in range(len(history.epoch))]
         return
 
     print('Completed training')
