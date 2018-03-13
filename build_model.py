@@ -112,7 +112,7 @@ def build_model_celeba(input_dim, config):
     model.add(Dropout(0.5))
     model.add(Dense(512, activation='relu'))
     model.add(Dropout(0.5))
-    model.add(Dense(3, activation='softmax'))
+    model.add(Dense(3, activation='sigmoid'))
     return compile_model(model, config)
 
 
@@ -123,9 +123,14 @@ def compile_model(model: object, config: object) -> object:
     metrics = ['accuracy']
     optimizer = Optimizer(config.optimizer).optimizer
     # compile model
-    model.compile(loss='binary_crossentropy',
-                  optimizer=optimizer,
-                  metrics=metrics)
+    if config.complexity == 'celeba':
+        model.compile(loss='mean_squared_error',
+                      optimizer=optimizer,
+                      metrics=metrics)
+    else:
+        model.compile(loss='binary_crossentropy',
+                      optimizer=optimizer,
+                      metrics=metrics)
     print('Finished compiling')
     model.summary()
     return model

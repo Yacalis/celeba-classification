@@ -9,6 +9,7 @@ Created on Tue Feb 20 15:21:00 2018
 import numpy as np
 import os
 import matplotlib.image as mpimg
+from random import shuffle
 
 
 def retrieve_data(data_dict, image_dir) -> ():
@@ -58,17 +59,20 @@ def retrieve_celeba_data(data_dict, image_dir) -> ():
     x_data = []
     y_data = []
     keys = data_dict.keys()
-    i = 0
+    i = 1
+    images = os.listdir(image_dir)
+    shuffle(images)
     try:
-        for file in image_dir:
-            i += 1
-            if i > 5000:
+        for file in images:
+            if i > 1000:
                 break
             if file in keys:
-                im_arr = mpimg.imread(file)
-                if im_arr.shape == (178, 218, 3):
+                filepath = os.path.join(image_dir, file)
+                im_arr = mpimg.imread(filepath)
+                if im_arr.shape == (218, 178, 3):
                     x_data.append(im_arr)
                     y_data.append(np.array(data_dict[file]))
+                    i += 1
     except Exception as e:
         print(str(e))
     x_data = np.array(x_data)

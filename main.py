@@ -11,7 +11,7 @@ import json
 import numpy as np
 from Callbacks import Callbacks
 from Config import Config
-from dataLoader import retrieve_data
+from dataLoader import retrieve_data, retrieve_celeba_data
 from folder_defs import get_log_dir, get_data_dir, get_train_dir, get_test_dir, get_celeba_dir
 from build_model import build_model
 from save_model import save_model
@@ -46,13 +46,13 @@ def main():
     # get data
     print('Loading data...')
     data_dict = get_celeba_data(data_dir)
-    x_data, y_data = retrieve_data(data_dict=data_dict, image_dir=image_dir)
+    x_data, y_data = retrieve_celeba_data(data_dict=data_dict, image_dir=image_dir)
     x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.2, shuffle=True)
     num_train = int(x_train.shape[0] * 0.8)
     print(f'Num training examples (excludes test and val): {num_train}')
 
     # build and save initial model
-    input_dim = x_data[0].shape
+    input_dim = x_train[0].shape
     model = build_model(input_dim, config, model_type=config.complexity)
     save_model(log_dir=log_dir, config=config, model=model)
 
@@ -120,7 +120,7 @@ def main():
             batch_size = batch_size if batch_size < num_train else num_train
 
         # store lr history as constant (because it is)
-        lr = [0.001 for i in range(len(val_loss))]
+        lr = [0.001 for i in range(len(bs))]
 
     else:
         print('Will not change learning rate nor batch size during training')
@@ -140,7 +140,6 @@ def main():
         acc += history.history['acc']
         lr = [0.001 for i in range(len(history.epoch))]
         bs = [batch_size for i in range(len(history.epoch))]
-        return
 
     print('Completed training')
 
@@ -163,8 +162,8 @@ def main():
 
     # evaluate model (on original batch size)
     print('Calculating final score...')
-    x_data, y_data = retrieve_data(data_dict=data_dict, image_dir=test_dir)
-    score = model.evaluate(x_data, y_data, batch_size=config.batch_size)
+    #x_data, y_data = retrieve_data(data_dict=data_dict, image_dir=test_dir)
+    score = model.evaluate(x_test, y_test, batch_size=config.batch_size)
     print('Final score:', score)
 
     print('Completed program')
