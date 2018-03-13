@@ -43,6 +43,6 @@ class Config:
         train_arg.add_argument('--change_lr', type=bool, default=True)
         train_arg.add_argument('--change_bs', type=bool, default=False)
         # options for complexity are: simple, complex, or single
-        train_arg.add_argument('--complexity', type=str, default='complex')
+        train_arg.add_argument('--complexity', type=str, default='celeba')
 
         return parser.parse_known_args()
