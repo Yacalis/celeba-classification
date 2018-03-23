@@ -10,15 +10,15 @@ The project is to look at how changing the batch size, instead of learning rate,
 Increasing the batch size by alpha in plateauing regions of validation loss performs the same or worse (in terms of final accuracy over a similar number of epochs and otherwise identical conditions) than decreasing the learning rate by alpha during training.
 
 ## Process:
-(1) Obtain dataset that has images of faces, and accompanying labels
-(2) Create NN in Keras similar to existing human-face-classification NNs
-(3) Rework NN to allow for batch size to change as training progresses
-(4) Train different NNs on data with varying hyperparameters
-(5) Create iOS app to take a saved Keras model and apply it to images taken by the phone
-(6) Present work
+1. Obtain dataset that has images of faces, and accompanying labels
+2. Create NN in Keras similar to existing human-face-classification NNs
+3. Rework NN to allow for batch size to change as training progresses
+4. Train different NNs on data with varying hyperparameters
+5. Create iOS app to take a saved Keras model and apply it to images taken by the phone
+6. Present work
 
 ## Dataset and Labels:
-Dataset: CelebA - http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
+Dataset: CelebA - http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html  
 Labels: binary - male, smiling, eyeglasses
 
 ## Initial Results:
