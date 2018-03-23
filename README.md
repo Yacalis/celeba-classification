@@ -1,4 +1,4 @@
-# cs274c-project
+# CelebA Multilabel Classification
 
 ## Purpose:
 Project for Neural Networks and Deep Learning (CS274C) class at UC Irvine.
